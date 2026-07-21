@@ -56,4 +56,8 @@ The simulation runs for a fixed number of steps and displays the agent's movemen
 
 "My third Agentic AI project is a Utility-Based Smart Cleaning Agent. I extended my previous Goal-Based Agent by introducing a utility mechanism. The agent's goal is still to clean all rooms, but now it also considers the cost associated with different actions. I assigned costs to cleaning and movement and designed the agent to select actions based on their utility. This helped me understand how utility-based agents optimize decisions rather than simply achieving a goal. The key difference is that a goal-based agent focuses on whether the goal can be achieved, while a utility-based agent also evaluates the quality and efficiency of different possible actions."
 
+4-Project -A Learning Agent 
+
+"A Learning Agent is an intelligent agent that improves its performance over time by learning from its interactions with the environment. It observes the current state, takes an action, receives feedback in the form of rewards or penalties, and updates its knowledge to make better decisions in the future.
+
 
