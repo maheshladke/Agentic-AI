@@ -47,11 +47,6 @@ The simulation runs for a fixed number of steps and displays the agent's movemen
 
 ## 🎯 Project Objective
 
-The main objective of this project is to understand the basic working principles of an AI Agent.
-
-The agent follows a simple perception-action cycle:
-
-```text
-Observe → Decide → Act → Move → Observe Again
+"I developed a Simple Reflex Agent using Python to understand the fundamental concepts of AI agents. I created a simulated 2x2 room environment where each room can be clean or dirty. The agent observes the current state of the room and uses a predefined condition-action rule. If the room is dirty, the agent cleans it. If the room is clean, the agent moves to the next room. I used Matplotlib to visualize the environment and agent movement. This project helped me understand the basic agent architecture of perception, decision-making, and action, which forms the foundation for more advanced agentic AI systems."
 
 
