@@ -1,0 +1,217 @@
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import time
+
+# ==========================================
+# Goal-Based Smart Room Cleaning Agent
+# ==========================================
+
+# Define the environment
+environment = {
+    "Room1": "Clean",
+    "Room2": "Dirty",
+    "Room3": "Dirty",
+    "Room4": "Clean"
+}
+
+# Mapping for grid positions
+room_positions = {
+    "Room1": (0, 1),  # Top-left
+    "Room2": (1, 1),  # Top-right
+    "Room3": (0, 0),  # Bottom-left
+    "Room4": (1, 0)   # Bottom-right
+}
+
+rooms = list(environment.keys())
+
+# Agent starts from Room1
+agent_index = 0
+
+
+# ==========================================
+# Goal Definition
+# ==========================================
+
+def goal_achieved(environment):
+    """
+    Check whether all rooms are clean.
+    Returns True if all rooms are clean.
+    """
+    return all(state == "Clean" for state in environment.values())
+
+
+# ==========================================
+# Goal-Based Agent Decision Function
+# ==========================================
+
+def goal_based_agent(environment, current_index):
+
+    # Check if the overall goal is achieved
+    if goal_achieved(environment):
+        return "Goal Achieved"
+
+    current_room = rooms[current_index]
+
+    # If current room is dirty, clean it
+    if environment[current_room] == "Dirty":
+        return "Clean"
+
+    # Otherwise move to the next room
+    return "Move"
+
+
+# ==========================================
+# Function to Draw Environment
+# ==========================================
+
+def draw_environment(env, agent_pos, step):
+
+    fig, ax = plt.subplots()
+
+    ax.set_xlim(0, 2)
+    ax.set_ylim(0, 2)
+
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+    ax.set_title(
+        f"Step {step} — Agent in {rooms[agent_pos]}"
+    )
+
+    # Draw rooms
+    for room, pos in room_positions.items():
+
+        x, y = pos
+
+        # Red = Dirty
+        # Green = Clean
+        color = "red" if env[room] == "Dirty" else "green"
+
+        rect = patches.Rectangle(
+            (x, y),
+            1,
+            1,
+            facecolor=color,
+            edgecolor="black"
+        )
+
+        ax.add_patch(rect)
+
+        ax.text(
+            x + 0.5,
+            y + 0.5,
+            f"{room}\n{env[room]}",
+            ha="center",
+            va="center",
+            color="white",
+            fontsize=10
+        )
+
+    # Draw AI Agent
+    agent_x, agent_y = room_positions[
+        rooms[agent_pos]
+    ]
+
+    agent_patch = patches.Circle(
+        (
+            agent_x + 0.5,
+            agent_y + 0.5
+        ),
+        0.1,
+        color="blue"
+    )
+
+    ax.add_patch(agent_patch)
+
+    plt.pause(1)
+
+    plt.close()
+
+
+# ==========================================
+# Run Simulation
+# ==========================================
+
+plt.ion()
+
+step = 0
+
+print("\n🤖 Goal-Based Smart Room Cleaning Agent")
+print("=" * 45)
+
+print("\n🎯 Goal: Clean all rooms")
+
+while not goal_achieved(environment):
+
+    step += 1
+
+    current_room = rooms[agent_index]
+
+    # Agent decides action
+    action = goal_based_agent(
+        environment,
+        agent_index
+    )
+
+    print(
+        f"\nStep {step}"
+    )
+
+    print(
+        f"Agent Location: {current_room}"
+    )
+
+    print(
+        f"Room Status: {environment[current_room]}"
+    )
+
+    print(
+        f"Action: {action}"
+    )
+
+    # Display environment
+    draw_environment(
+        environment,
+        agent_index,
+        step
+    )
+
+    # Perform action
+    if action == "Clean":
+
+        print(
+            f"🧹 Cleaning {current_room}..."
+        )
+
+        environment[current_room] = "Clean"
+
+    elif action == "Move":
+
+        agent_index = (
+            agent_index + 1
+        ) % len(rooms)
+
+        print(
+            f"➡️ Moving to {rooms[agent_index]}"
+        )
+
+    time.sleep(0.5)
+
+
+# ==========================================
+# Goal Achieved
+# ==========================================
+
+plt.ioff()
+
+print("\n" + "=" * 45)
+
+print("🎉 GOAL ACHIEVED!")
+
+print("✅ All rooms are clean.")
+
+print(
+    f"✅ Total steps: {step}"
+)
+
+print("=" * 45)
