@@ -1,0 +1,570 @@
+import random
+import time
+
+
+# ============================================================
+# PROJECT 4
+# LEARNING-BASED SMART CLEANING AGENT
+# ============================================================
+
+
+# ============================================================
+# 1. ENVIRONMENT
+# ============================================================
+
+environment = {
+    "Room1": "Clean",
+    "Room2": "Dirty",
+    "Room3": "Dirty",
+    "Room4": "Clean"
+}
+
+
+# ============================================================
+# 2. ROOM ORDER
+# ============================================================
+
+rooms = [
+    "Room1",
+    "Room2",
+    "Room3",
+    "Room4"
+]
+
+
+# ============================================================
+# 3. AGENT INITIAL POSITION
+# ============================================================
+
+agent_index = 0
+
+
+# ============================================================
+# 4. LEARNING PARAMETERS
+# ============================================================
+
+LEARNING_RATE = 0.5
+
+DISCOUNT_FACTOR = 0.9
+
+EPSILON = 0.2
+
+
+# ============================================================
+# 5. ACTIONS
+# ============================================================
+
+actions = [
+    "Clean",
+    "Move"
+]
+
+
+# ============================================================
+# 6. Q-TABLE
+# ============================================================
+
+q_table = {}
+
+
+# ============================================================
+# 7. INITIALIZE Q-TABLE
+# ============================================================
+
+def initialize_q_table():
+
+    for room in rooms:
+
+        for state in [
+            "Clean",
+            "Dirty"
+        ]:
+
+            key = (
+                room,
+                state
+            )
+
+            q_table[key] = {
+
+                "Clean": 0.0,
+
+                "Move": 0.0
+
+            }
+
+
+# ============================================================
+# 8. GET CURRENT STATE
+# ============================================================
+
+def get_state():
+
+    current_room = rooms[
+        agent_index
+    ]
+
+    current_condition = environment[
+        current_room
+    ]
+
+    return (
+        current_room,
+        current_condition
+    )
+
+
+# ============================================================
+# 9. SELECT ACTION
+# ============================================================
+
+def choose_action(state):
+
+    # --------------------------------------------------------
+    # Exploration
+    # --------------------------------------------------------
+
+    if random.random() < EPSILON:
+
+        action = random.choice(
+            actions
+        )
+
+        print(
+            "🔍 Exploration: "
+            "Trying a random action"
+        )
+
+        return action
+
+
+    # --------------------------------------------------------
+    # Exploitation
+    # --------------------------------------------------------
+
+    action = max(
+
+        q_table[state],
+
+        key=q_table[state].get
+
+    )
+
+
+    print(
+        "🧠 Exploitation: "
+        "Using learned knowledge"
+    )
+
+
+    return action
+
+
+# ============================================================
+# 10. GET REWARD
+# ============================================================
+
+def get_reward(
+    action,
+    current_room
+):
+
+    if action == "Clean":
+
+        if environment[
+            current_room
+        ] == "Dirty":
+
+            return 10
+
+        else:
+
+            return -5
+
+
+    elif action == "Move":
+
+        return -1
+
+
+    return 0
+
+
+# ============================================================
+# 11. UPDATE Q-TABLE
+# ============================================================
+
+def update_q_value(
+
+    state,
+
+    action,
+
+    reward,
+
+    next_state
+
+):
+
+    current_q = q_table[
+        state
+    ][
+        action
+    ]
+
+
+    max_next_q = max(
+
+        q_table[
+            next_state
+        ].values()
+
+    )
+
+
+    # Q-Learning Formula
+
+    new_q = (
+
+        current_q
+
+        +
+
+        LEARNING_RATE
+
+        *
+
+        (
+
+            reward
+
+            +
+
+            DISCOUNT_FACTOR
+
+            *
+
+            max_next_q
+
+            -
+
+            current_q
+
+        )
+
+    )
+
+
+    q_table[
+        state
+    ][
+        action
+    ] = new_q
+
+
+# ============================================================
+# 12. RUN ONE EPISODE
+# ============================================================
+
+def run_episode():
+
+    global agent_index
+
+
+    # Reset environment
+
+    environment[
+        "Room1"
+    ] = "Clean"
+
+
+    environment[
+        "Room2"
+    ] = "Dirty"
+
+
+    environment[
+        "Room3"
+    ] = "Dirty"
+
+
+    environment[
+        "Room4"
+    ] = "Clean"
+
+
+    # Reset agent
+
+    agent_index = 0
+
+
+    total_reward = 0
+
+
+    print(
+        "\n"
+        +
+        "=" * 60
+    )
+
+
+    print(
+        "NEW LEARNING EPISODE"
+    )
+
+
+    print(
+        "=" * 60
+    )
+
+
+    for step in range(10):
+
+
+        # ----------------------------------------------------
+        # Current State
+        # ----------------------------------------------------
+
+        state = get_state()
+
+
+        current_room = rooms[
+            agent_index
+        ]
+
+
+        print(
+            f"\nStep: {step + 1}"
+        )
+
+
+        print(
+            f"Agent Location: "
+            f"{current_room}"
+        )
+
+
+        print(
+            f"Room State: "
+            f"{environment[current_room]}"
+        )
+
+
+        # ----------------------------------------------------
+        # Choose Action
+        # ----------------------------------------------------
+
+        action = choose_action(
+            state
+        )
+
+
+        print(
+            f"Selected Action: "
+            f"{action}"
+        )
+
+
+        # ----------------------------------------------------
+        # Execute Action
+        # ----------------------------------------------------
+
+        if action == "Clean":
+
+            if environment[
+                current_room
+            ] == "Dirty":
+
+                environment[
+                    current_room
+                ] = "Clean"
+
+
+                print(
+                    f"🧹 Cleaned "
+                    f"{current_room}"
+                )
+
+
+            else:
+
+                print(
+                    "⚠️ Room was already clean"
+                )
+
+
+        elif action == "Move":
+
+            agent_index = (
+
+                agent_index + 1
+
+            ) % len(rooms)
+
+
+            print(
+                f"➡️ Moved to "
+                f"{rooms[agent_index]}"
+            )
+
+
+        # ----------------------------------------------------
+        # Get Reward
+        # ----------------------------------------------------
+
+        reward = get_reward(
+
+            action,
+
+            current_room
+
+        )
+
+
+        print(
+            f"Reward: "
+            f"{reward}"
+        )
+
+
+        total_reward += reward
+
+
+        # ----------------------------------------------------
+        # New State
+        # ----------------------------------------------------
+
+        next_state = get_state()
+
+
+        # ----------------------------------------------------
+        # Update Q-Table
+        # ----------------------------------------------------
+
+        update_q_value(
+
+            state,
+
+            action,
+
+            reward,
+
+            next_state
+
+        )
+
+
+        print(
+            "📚 Agent learned "
+            "from this experience"
+        )
+
+
+        # ----------------------------------------------------
+        # Check Goal
+        # ----------------------------------------------------
+
+        if all(
+
+            state == "Clean"
+
+            for state in environment.values()
+
+        ):
+
+            print(
+                "\n🎉 All rooms are clean!"
+            )
+
+            break
+
+
+        time.sleep(
+            0.5
+        )
+
+
+    return total_reward
+
+
+# ============================================================
+# 13. MAIN PROGRAM
+# ============================================================
+
+initialize_q_table()
+
+
+EPISODES = 10
+
+
+print(
+    "\n"
+)
+
+print(
+    "🤖 LEARNING-BASED SMART CLEANING AGENT"
+)
+
+
+print(
+    f"Training Episodes: "
+    f"{EPISODES}"
+)
+
+
+# ============================================================
+# TRAINING
+# ============================================================
+
+for episode in range(
+    EPISODES
+):
+
+    print(
+        f"\n\n"
+        f"EPISODE "
+        f"{episode + 1}"
+    )
+
+
+    reward = run_episode()
+
+
+    print(
+        f"\nEpisode Reward: "
+        f"{reward}"
+    )
+
+
+# ============================================================
+# FINAL LEARNED Q-TABLE
+# ============================================================
+
+print(
+    "\n"
+)
+
+print(
+    "=" * 60
+)
+
+print(
+    "FINAL LEARNED Q-TABLE"
+)
+
+print(
+    "=" * 60
+)
+
+
+for state, values in q_table.items():
+
+    print(
+        f"{state} → "
+        f"{values}"
+    )
+
+
+print(
+    "\n🎓 Learning completed!"
+)
