@@ -1,0 +1,797 @@
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import time
+
+
+# ============================================================
+# PROJECT 3
+# UTILITY-BASED SMART CLEANING AGENT
+# ============================================================
+
+
+# ============================================================
+# 1. ENVIRONMENT
+# ============================================================
+
+environment = {
+    "Room1": "Clean",
+    "Room2": "Dirty",
+    "Room3": "Dirty",
+    "Room4": "Clean"
+}
+
+
+# ============================================================
+# 2. ROOM CONNECTIONS
+# ============================================================
+
+# This defines which rooms are directly connected.
+
+room_connections = {
+    "Room1": ["Room2", "Room3"],
+    "Room2": ["Room1", "Room4"],
+    "Room3": ["Room1", "Room4"],
+    "Room4": ["Room2", "Room3"]
+}
+
+
+# ============================================================
+# 3. ROOM POSITIONS
+# ============================================================
+
+room_positions = {
+    "Room1": (0, 1),
+    "Room2": (1, 1),
+    "Room3": (0, 0),
+    "Room4": (1, 0)
+}
+
+
+# ============================================================
+# 4. INITIAL AGENT LOCATION
+# ============================================================
+
+agent_room = "Room1"
+
+
+# ============================================================
+# 5. COST CONFIGURATION
+# ============================================================
+
+BASE_UTILITY = 100
+
+CLEANING_COST = 10
+
+MOVEMENT_COST = 5
+
+
+# ============================================================
+# 6. MAXIMUM STEPS
+# ============================================================
+
+MAX_STEPS = 20
+
+
+# ============================================================
+# 7. CHECK GOAL
+# ============================================================
+
+def goal_achieved(environment):
+
+    """
+    Return True when all rooms are clean.
+    """
+
+    for room, state in environment.items():
+
+        if state == "Dirty":
+
+            return False
+
+    return True
+
+
+# ============================================================
+# 8. GET DIRTY ROOMS
+# ============================================================
+
+def get_dirty_rooms(environment):
+
+    dirty_rooms = []
+
+    for room, state in environment.items():
+
+        if state == "Dirty":
+
+            dirty_rooms.append(room)
+
+    return dirty_rooms
+
+
+# ============================================================
+# 9. CALCULATE UTILITY
+# ============================================================
+
+def calculate_utility(
+    action,
+    distance=0
+):
+
+    if action == "Clean":
+
+        return (
+            BASE_UTILITY
+            - CLEANING_COST
+        )
+
+    elif action == "Move":
+
+        return (
+            BASE_UTILITY
+            - (
+                distance
+                * MOVEMENT_COST
+            )
+        )
+
+    return 0
+
+
+# ============================================================
+# 10. FIND NEAREST DIRTY ROOM
+# ============================================================
+
+def find_nearest_dirty_room(
+    current_room,
+    environment
+):
+
+    dirty_rooms = get_dirty_rooms(
+        environment
+    )
+
+    if len(dirty_rooms) == 0:
+
+        return None
+
+
+    # Simple distance calculation
+    # based on room index
+
+    current_index = list(
+        environment.keys()
+    ).index(
+        current_room
+    )
+
+
+    nearest_room = None
+
+    minimum_distance = 999
+
+
+    for room in dirty_rooms:
+
+        room_index = list(
+            environment.keys()
+        ).index(
+            room
+        )
+
+
+        distance = abs(
+            current_index
+            -
+            room_index
+        )
+
+
+        if distance < minimum_distance:
+
+            minimum_distance = distance
+
+            nearest_room = room
+
+
+    return nearest_room
+
+
+# ============================================================
+# 11. AGENT DECISION
+# ============================================================
+
+def utility_based_agent(
+    current_room,
+    environment
+):
+
+    # --------------------------------------------------------
+    # FIRST CHECK GOAL
+    # --------------------------------------------------------
+
+    if goal_achieved(
+        environment
+    ):
+
+        return "Goal Achieved", None, 0
+
+
+    # --------------------------------------------------------
+    # IF CURRENT ROOM IS DIRTY
+    # --------------------------------------------------------
+
+    if environment[
+        current_room
+    ] == "Dirty":
+
+        utility = calculate_utility(
+            "Clean"
+        )
+
+        return (
+            "Clean",
+            current_room,
+            utility
+        )
+
+
+    # --------------------------------------------------------
+    # FIND NEAREST DIRTY ROOM
+    # --------------------------------------------------------
+
+    target_room = find_nearest_dirty_room(
+
+        current_room,
+
+        environment
+
+    )
+
+
+    if target_room is None:
+
+        return (
+            "Goal Achieved",
+            None,
+            0
+        )
+
+
+    # --------------------------------------------------------
+    # CALCULATE DISTANCE
+    # --------------------------------------------------------
+
+    current_index = list(
+        environment.keys()
+    ).index(
+        current_room
+    )
+
+
+    target_index = list(
+        environment.keys()
+    ).index(
+        target_room
+    )
+
+
+    distance = abs(
+        current_index
+        -
+        target_index
+    )
+
+
+    # --------------------------------------------------------
+    # CALCULATE MOVE UTILITY
+    # --------------------------------------------------------
+
+    utility = calculate_utility(
+
+        "Move",
+
+        distance
+
+    )
+
+
+    return (
+        "Move",
+        target_room,
+        utility
+    )
+
+
+# ============================================================
+# 12. DRAW ENVIRONMENT
+# ============================================================
+
+def draw_environment(
+
+    environment,
+
+    agent_room,
+
+    step
+
+):
+
+    fig, ax = plt.subplots()
+
+
+    ax.set_xlim(
+        0,
+        2
+    )
+
+    ax.set_ylim(
+        0,
+        2
+    )
+
+
+    ax.set_xticks([])
+
+    ax.set_yticks([])
+
+
+    ax.set_title(
+
+        f"Step {step} | "
+        f"Agent: {agent_room}"
+
+    )
+
+
+    # --------------------------------------------------------
+    # DRAW ROOMS
+    # --------------------------------------------------------
+
+    for room, position in room_positions.items():
+
+        x, y = position
+
+
+        if environment[
+            room
+        ] == "Dirty":
+
+            color = "red"
+
+        else:
+
+            color = "green"
+
+
+        rectangle = patches.Rectangle(
+
+            (x, y),
+
+            1,
+
+            1,
+
+            facecolor=color,
+
+            edgecolor="black",
+
+            linewidth=2
+
+        )
+
+
+        ax.add_patch(
+            rectangle
+        )
+
+
+        ax.text(
+
+            x + 0.5,
+
+            y + 0.5,
+
+            f"{room}\n"
+            f"{environment[room]}",
+
+            ha="center",
+
+            va="center",
+
+            color="white",
+
+            fontsize=10
+
+        )
+
+
+    # --------------------------------------------------------
+    # DRAW AGENT
+    # --------------------------------------------------------
+
+    agent_x, agent_y = room_positions[
+        agent_room
+    ]
+
+
+    agent = patches.Circle(
+
+        (
+
+            agent_x + 0.5,
+
+            agent_y + 0.5
+
+        ),
+
+        0.12,
+
+        color="blue"
+
+    )
+
+
+    ax.add_patch(
+        agent
+    )
+
+
+    plt.pause(
+        0.5
+    )
+
+
+    plt.close()
+
+
+# ============================================================
+# 13. RUN SIMULATION
+# ============================================================
+
+plt.ion()
+
+
+step = 0
+
+total_cost = 0
+
+total_utility = 0
+
+
+print(
+    "\n"
+)
+
+print(
+    "=" * 60
+)
+
+print(
+    "UTILITY-BASED SMART CLEANING AGENT"
+)
+
+print(
+    "=" * 60
+)
+
+
+print(
+    "\nInitial Environment:"
+)
+
+
+for room, state in environment.items():
+
+    print(
+        f"{room}: {state}"
+    )
+
+
+# ============================================================
+# MAIN LOOP
+# ============================================================
+
+while True:
+
+
+    # --------------------------------------------------------
+    # CHECK GOAL BEFORE EVERY STEP
+    # --------------------------------------------------------
+
+    if goal_achieved(
+        environment
+    ):
+
+        print(
+            "\n🎉 GOAL ACHIEVED!"
+        )
+
+        print(
+            "✅ All rooms are clean."
+        )
+
+        break
+
+
+    # --------------------------------------------------------
+    # SAFETY LIMIT
+    # --------------------------------------------------------
+
+    if step >= MAX_STEPS:
+
+        print(
+            "\n⚠️ MAXIMUM STEPS REACHED!"
+        )
+
+        print(
+            "🛑 Simulation stopped."
+        )
+
+        print(
+            "Current Environment:"
+        )
+
+        for room, state in environment.items():
+
+            print(
+                f"{room}: {state}"
+            )
+
+        break
+
+
+    # --------------------------------------------------------
+    # INCREMENT STEP
+    # --------------------------------------------------------
+
+    step += 1
+
+
+    # --------------------------------------------------------
+    # AGENT DECISION
+    # --------------------------------------------------------
+
+    action, target, utility = (
+
+        utility_based_agent(
+
+            agent_room,
+
+            environment
+
+        )
+
+    )
+
+
+    total_utility += utility
+
+
+    print(
+        "\n"
+        +
+        "-" * 60
+    )
+
+
+    print(
+        f"Step: {step}"
+    )
+
+
+    print(
+        f"Agent: {agent_room}"
+    )
+
+
+    print(
+        f"Current State: "
+        f"{environment[agent_room]}"
+    )
+
+
+    print(
+        f"Action: {action}"
+    )
+
+
+    print(
+        f"Target: {target}"
+    )
+
+
+    print(
+        f"Utility: {utility}"
+    )
+
+
+    # --------------------------------------------------------
+    # DRAW
+    # --------------------------------------------------------
+
+    draw_environment(
+
+        environment,
+
+        agent_room,
+
+        step
+
+    )
+
+
+    # ========================================================
+    # ACTION: CLEAN
+    # ========================================================
+
+    if action == "Clean":
+
+        print(
+            f"🧹 Cleaning {agent_room}"
+        )
+
+
+        # IMPORTANT:
+        # Dirty becomes Clean
+
+        environment[
+            agent_room
+        ] = "Clean"
+
+
+        total_cost += (
+            CLEANING_COST
+        )
+
+
+        print(
+            f"✅ {agent_room} "
+            f"is now CLEAN"
+        )
+
+
+    # ========================================================
+    # ACTION: MOVE
+    # ========================================================
+
+    elif action == "Move":
+
+
+        print(
+
+            f"➡️ Moving toward "
+            f"{target}"
+
+        )
+
+
+        # Move according to
+        # room connection
+
+        possible_rooms = room_connections[
+            agent_room
+        ]
+
+
+        # Select connected room
+        # that is closer to target
+
+        target_index = list(
+            environment.keys()
+        ).index(
+            target
+        )
+
+
+        best_room = None
+
+        best_distance = 999
+
+
+        for next_room in possible_rooms:
+
+            next_index = list(
+                environment.keys()
+            ).index(
+                next_room
+            )
+
+
+            distance = abs(
+
+                next_index
+                -
+                target_index
+
+            )
+
+
+            if distance < best_distance:
+
+                best_distance = distance
+
+                best_room = next_room
+
+
+        agent_room = best_room
+
+
+        total_cost += (
+            MOVEMENT_COST
+        )
+
+
+        print(
+
+            f"📍 Agent moved to "
+            f"{agent_room}"
+
+        )
+
+
+    # --------------------------------------------------------
+    # DELAY
+    # --------------------------------------------------------
+
+    time.sleep(
+        0.5
+    )
+
+
+# ============================================================
+# FINAL RESULT
+# ============================================================
+
+plt.ioff()
+
+
+print(
+    "\n"
+)
+
+print(
+    "=" * 60
+)
+
+print(
+    "FINAL RESULT"
+)
+
+print(
+    "=" * 60
+)
+
+
+print(
+    f"Total Steps: "
+    f"{step}"
+)
+
+
+print(
+    f"Total Cost: "
+    f"{total_cost}"
+)
+
+
+print(
+    f"Total Utility: "
+    f"{total_utility}"
+)
+
+
+print(
+    "\nFinal Environment:"
+)
+
+
+for room, state in environment.items():
+
+    print(
+        f"{room}: {state}"
+    )
+
+
+print(
+    "=" * 60
+)
